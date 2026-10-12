@@ -1,5 +1,7 @@
 # Unity-inspired Snowflake portal
 
+> **Disclaimer:** All content in this demo is fictive. Names, identities, projects, data, and delivery results are invented for demonstration purposes only.
+
 A local Node.js/React developer portal with Snowflake trial onboarding and **two independently delivered private listings**. All displayed Unity identities, projects, and delivery results are synthetic. This is not an official Unity service.
 
 ## Run locally
