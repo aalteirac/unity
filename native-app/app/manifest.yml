@@ -1,0 +1,11 @@
+manifest_version: 1
+
+version:
+  name: V1
+  label: "Unity Analytics (dummy) v1"
+  comment: "Dummy app used to test the Unity portal delivery flow."
+
+artifacts:
+  setup_script: setup.sql
+  readme: README.md
+  default_streamlit: ui.home

@@ -1,0 +1,34 @@
+-- Provider-side test fixtures for the Unity portal. Run as ACCOUNTADMIN.
+-- Listings are NOT created here; they need a real consumer account (ORG.ACCOUNT).
+
+-- 1. Fake Unity data (names match .env.example)
+CREATE DATABASE IF NOT EXISTS UNITY_DATA;
+CREATE OR REPLACE TABLE UNITY_DATA.PUBLIC.EVENTS (
+  UNITY_ID STRING, PROJECT_NAME STRING, EVENT_DATE DATE,
+  ACTIVE_PLAYERS NUMBER, REVENUE_USD NUMBER(12,2), INTERNAL_NOTE STRING
+);
+INSERT INTO UNITY_DATA.PUBLIC.EVENTS VALUES
+  ('unity_demo_north', 'Skyline Racers', '2026-09-01', 18420, 31200.00, 'internal'),
+  ('unity_demo_north', 'Skyline Racers', '2026-09-02', 18905, 32950.50, 'internal'),
+  ('unity_demo_north', 'Harbor Tactics', '2026-09-01', 6210, 9100.00, 'internal'),
+  ('unity_demo_orbit', 'Lunar Quest', '2026-09-01', 12840, 24600.00, 'internal'),
+  ('unity_demo_orbit', 'Starfall', '2026-09-01', 8320, 18200.00, 'internal'),
+  ('unity_demo_orbit', 'Starfall', '2026-09-02', 8610, 18940.25, 'internal'),
+  ('unity_demo_pixel', 'Pixel Kingdoms', '2026-09-01', 4410, 5300.00, 'internal'),
+  ('unity_demo_pixel', 'Pixel Kingdoms', '2026-09-02', 4590, 5480.75, 'internal');
+
+-- 2. Unity-filtered secure view + dedicated share (one studio: Orbit)
+CREATE SCHEMA IF NOT EXISTS UNITY_DATA.PORTAL_SHARING;
+CREATE OR REPLACE SECURE VIEW UNITY_DATA.PORTAL_SHARING.EVENTS_UNITY_DEMO_ORBIT AS
+  SELECT PROJECT_NAME, EVENT_DATE, ACTIVE_PLAYERS, REVENUE_USD
+  FROM UNITY_DATA.PUBLIC.EVENTS
+  WHERE UNITY_ID = 'unity_demo_orbit';
+CREATE SHARE IF NOT EXISTS UNITY_PORTAL_DATA_ORBIT;
+GRANT USAGE ON DATABASE UNITY_DATA TO SHARE UNITY_PORTAL_DATA_ORBIT;
+GRANT USAGE ON SCHEMA UNITY_DATA.PORTAL_SHARING TO SHARE UNITY_PORTAL_DATA_ORBIT;
+GRANT SELECT ON VIEW UNITY_DATA.PORTAL_SHARING.EVENTS_UNITY_DEMO_ORBIT TO SHARE UNITY_PORTAL_DATA_ORBIT;
+
+-- 3. Native App package (files uploaded from native-app/app with PUT)
+CREATE APPLICATION PACKAGE IF NOT EXISTS UNITY_ANALYTICS_PACKAGE DISTRIBUTION = EXTERNAL;
+CREATE SCHEMA IF NOT EXISTS UNITY_ANALYTICS_PACKAGE.STAGE_CONTENT;
+CREATE STAGE IF NOT EXISTS UNITY_ANALYTICS_PACKAGE.STAGE_CONTENT.APP_CODE;

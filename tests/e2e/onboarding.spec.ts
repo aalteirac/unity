@@ -1,0 +1,35 @@
+import { expect, test } from '@playwright/test';
+test('account normalization, simulated delivery, and SQL preview', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByLabel('Unity identity')).toBeEnabled();
+  await page.screenshot({ path: 'test-results/portal-desktop.png', fullPage: true });
+  await expect(page.getByRole('link', { name: 'Create a free trial' })).toHaveAttribute('href', 'https://signup.snowflake.com/');
+  await expect(page.getByRole('link', { name: 'Create a free trial' })).toHaveAttribute('target', '_blank');
+  await page.getByLabel('Snowflake account URL or identifier').fill('https://acme-games.snowflakecomputing.com');
+  await page.reload();
+  await expect(page.getByLabel('Snowflake account URL or identifier')).toHaveValue('https://acme-games.snowflakecomputing.com');
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByText('ACME.GAMES', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Demo failure scenario')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Simulate private delivery' }).click();
+  await expect(page.getByText('Your demo connection is ready')).toBeVisible();
+  await page.getByRole('button', { name: 'Preview integration SQL' }).click();
+  await expect(page.getByRole('heading', { name: 'Integration preview' })).toBeVisible();
+  await expect(page.locator('.delivery-item .badge')).toHaveText(['SIMULATED', 'SIMULATED']);
+});
+test('identity switching, locator guidance, responsive layout and session isolation', async ({ page, request }) => {
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto('/');
+  await page.getByLabel('Unity identity').selectOption('studio-orbit');
+  await expect(page.locator('.preview-row').filter({ hasText: 'Lunar Quest' })).toBeVisible();
+  await expect(page.locator('.preview-row').filter({ hasText: 'Skybound' })).not.toBeVisible();
+  await page.getByLabel('Snowflake account URL or identifier').fill('xy12345');
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Data Sharing Account Identifier');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/portal-mobile.png', fullPage: true });
+  const forged = await request.post('/api/deliveries', { data: { account: 'ACME.GAMES', unityId: 'victim' } });
+  expect(forged.ok()).toBe(false);
+  const hostile = await request.post('/api/session', { headers: { Origin: 'https://evil.example' }, data: { identityId: 'studio-north' } });
+  expect(hostile.status()).toBe(403);
+});

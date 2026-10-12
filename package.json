@@ -1,0 +1,21 @@
+{
+  "name": "unity-snowflake-portal",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/*", "packages/*"],
+  "overrides": { "shell-quote": "^1.12.0" },
+  "scripts": {
+    "dev": "concurrently -k \"npm run dev -w @portal/api\" \"npm run dev -w @portal/web\"",
+    "build": "npm run build -w @portal/web && npm run build -w @portal/api",
+    "start": "npm run start -w @portal/api",
+    "typecheck": "tsc --noEmit -p apps/api && tsc --noEmit -p apps/web",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0", "@playwright/test": "^1.56.0", "@types/node": "^22.18.0",
+    "concurrently": "^10.0.5", "eslint": "^9.39.0", "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.0", "vitest": "^5.0.3"
+  }
+}
